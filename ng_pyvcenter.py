@@ -53,11 +53,21 @@ class Clusters():
         self.children = containerView.view
 
     def listClusters(self):
-        
+        print('-' * 88 )
+        print('| {:15} | {:30} | {:20} | {:13} |'.format('Cluster Name', 'ESXi host', 'Status', 'Uptime[days]'))
+       
         for child in self.children:
-            print('\nCluster: {:15} - status: {:10}'.format(child.name, child.summary.overallStatus))
+            print('-' * 88 )
+            chname = child.name
+            chstatus = child.summary.overallStatus
+            print('| {:15} | {:30} | {:20} |'.format(chname, '', chstatus))
             for host in child.host:
-                print('--- ESXi Host: {:20} - status: {:10}'.format(host.name, host.summary.overallStatus))
+                hname = host.name
+                hstatus = host.summary.overallStatus
+                huptime = host.summary.quickStats.uptime / 86400
+                print('| {:15} | {:30} | {:20} | {:13.1f} |'.format('', hname, hstatus, huptime))
+
+        print('-' * 88 )
 
     def getClusterInfo(self, clName):
         for child in self.children:
@@ -70,6 +80,7 @@ class Clusters():
 
 class VirtualMachines():
     def __init__(self, si):
+
         self.si = si
         
         content = self.si.RetrieveContent() # starting point
@@ -81,14 +92,19 @@ class VirtualMachines():
                                                                 recursive) # Create a view
         self.children = containerView.view
 
+
     def listVMs(self):
-        for child in self.viewType:
+        print('-' * 132 )
+        print('| {:45} | {:15} | {:14} | {:45} |'.format('VM name', 'IP address', 'State', 'Guest OS'))
+        print('-' * 132 )
+        for child in self.children:
             if child.summary.guest is not None:
-                try:
-                    tools_version = child.summary.guest.toolsStatus
-                    print("VM: {}, VMware-tools: {}".format(child.name, tools_version))
-                except:
-                    print("Vmware-tools: None")
+                name = child.name
+                isgRunning = child.guest.guestState
+                power = child.summary.runtime.powerState
+                system = child.summary.config.guestFullName
+                ip = '{}'.format(child.guest.ipAddress)
+                print('| {:45} | {:15} | {:14} | {:45} |'.format(name, isgRunning, ip, system))
 
 
 class dataStores:
