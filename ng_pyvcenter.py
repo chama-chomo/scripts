@@ -61,19 +61,25 @@ class Clusters():
             chname = child.name
             chstatus = child.summary.overallStatus
             print('| {:15} | {:30} | {:20} |'.format(chname, '', chstatus))
+
             for host in child.host:
-                hname = host.name
-                hstatus = host.summary.overallStatus
-                huptime = host.summary.quickStats.uptime / 86400
-                print('| {:15} | {:30} | {:20} | {:13.1f} |'.format('', hname, hstatus, huptime))
+                hName = host.name
+                hStatus = host.summary.overallStatus
+                hUptime = host.summary.quickStats.uptime / 86400
+                print('| {:15} | {:30} | {:20} | {:13.1f} |'.format('', hName, hStatus, hUptime))
         print('-' * 91 )
 
     def getClusterInfo(self, clName):
         for child in self.children:
             if child.name == clName:
-                print('\nCluster: {:15} - status: {:10}'.format(child.name, child.summary.overallStatus))
+                clName = child.name
+                clStatus = child.summary.overallStatus
+                print('\nCluster: {:15} - status: {:10}'.format(clName, clStatus))
+
                 for host in child.host:
-                    print('--- ESXi Host: {:20} - status: {:10}'.format(host.name, host.summary.overallStatus))
+                    hName = host.name
+                    hStatus = host.summary.overallStatus
+                    print('--- ESXi Host: {:20} - status: {:10}'.format(hName, hStatus))
                 cpu_perc = int((child.summary.usageSummary.cpuDemandMhz * 100) / child.summary.totalCpu)
                 print('Consumed Cluster CPU: {}%'.format(cpu_perc))
 
@@ -135,13 +141,15 @@ class resourcePool:
                 pass
             elif child.parent.name == 'Resources':
                 print('-' * 90)
-                print('| {:35} | {:35} | {:10} |'.format(child.name, ' ', child.overallStatus))
+                rpName = child.name
+                rpStatus = child.overallStatus
+                print('| {:35} | {:35} | {:10} |'.format(rpName, ' ', rpStatus))
 
                 for uResPool in child.resourcePool:
-                    name = uResPool.name
-                    status = uResPool.overallStatus
+                    urpName = uResPool.name
+                    urpStatus = uResPool.overallStatus
                     if uResPool.resourcePool == []:
-                        print('| {:35} | {:35} | {:10} |'.format(' ', name, status))
+                        print('| {:35} | {:35} | {:10} |'.format(' ', urpName, urpStatus))
         print('-' * 90)
 
 class dataCenters:
