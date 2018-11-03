@@ -53,11 +53,11 @@ class Clusters():
         self.children = containerView.view
 
     def listClusters(self):
-        print('-' * 88 )
+        print('-' * 91 )
         print('| {:15} | {:30} | {:20} | {:13} |'.format('Cluster Name', 'ESXi host', 'Status', 'Uptime[days]'))
        
         for child in self.children:
-            print('-' * 88 )
+            print('-' * 91 )
             chname = child.name
             chstatus = child.summary.overallStatus
             print('| {:15} | {:30} | {:20} |'.format(chname, '', chstatus))
@@ -66,8 +66,7 @@ class Clusters():
                 hstatus = host.summary.overallStatus
                 huptime = host.summary.quickStats.uptime / 86400
                 print('| {:15} | {:30} | {:20} | {:13.1f} |'.format('', hname, hstatus, huptime))
-
-        print('-' * 88 )
+        print('-' * 91 )
 
     def getClusterInfo(self, clName):
         for child in self.children:
@@ -130,16 +129,19 @@ class resourcePool:
     def listResourcePools(self):
         print('-' * 90)
         print('| {:35} | {:36}| {:10} |'.format('ResourcePool name', 'Child RP name', 'Status'))
+
         for child in self.children:
             if child.name == 'Resources':
                 pass
             elif child.parent.name == 'Resources':
                 print('-' * 90)
                 print('| {:35} | {:35} | {:10} |'.format(child.name, ' ', child.overallStatus))
-                for uResPool in child.resourcePool:
-                    if uResPool.resourcePool == []:
-                        print('| {:35} | {:35} | {:10} |'.format(' ', uResPool.name, uResPool.overallStatus))
 
+                for uResPool in child.resourcePool:
+                    name = uResPool.name
+                    status = uResPool.overallStatus
+                    if uResPool.resourcePool == []:
+                        print('| {:35} | {:35} | {:10} |'.format(' ', name, status))
         print('-' * 90)
 
 class dataCenters:
@@ -157,12 +159,19 @@ class dataCenters:
         self.children = containerView.view
 
     def listDatacenters(self):
-        
-        for child in self.children:
-            print('\nDatacenter: {:35} - status: {:10}'.format(child.name, child.overallStatus))
-            for dcEnt in child.hostFolder.childEntity:
-                print('--- Serving domains: {:35} - status {:10}'.format(dcEnt.name, dcEnt.overallStatus))
+        print('-' * 91)
+        print('| {:35} | {:36} | {:10} |'.format('Datacenter name', 'Serviced domains', 'Status'))
 
+        for child in self.children:
+            dcName = child.name
+            dcStatus = child.overallStatus
+            print('-' * 91)
+            print('| {:35} | {:36} | {:10} |'.format(dcName, '', dcStatus))
+            for dcEnt in child.hostFolder.childEntity:
+                hName = dcEnt.name
+                hStatus = dcEnt.overallStatus
+                print('| {:35} | {:36} | {:10} |'.format('', hName, hStatus))
+        print('-' * 91)
 ##################################################################################
 ##################################################################################
 ##################################################################################
