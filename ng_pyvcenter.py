@@ -99,9 +99,9 @@ class VirtualMachines():
 
 
     def listVMs(self):
-        print('-' * 132 )
-        print('| {:45} | {:15} | {:14} | {:45} |'.format('VM name', 'IP address', 'State', 'Guest OS'))
-        print('-' * 132 )
+        print('-' * 152 )
+        print('| {:45} | {:15} | {:24} | {:55} |'.format('VM name', 'State', 'IP address', 'Guest OS'))
+        print('-' * 152 )
         for child in self.children:
             if child.summary.guest is not None:
                 name = child.name
@@ -109,14 +109,132 @@ class VirtualMachines():
                 power = child.summary.runtime.powerState
                 system = child.summary.config.guestFullName
                 ip = '{}'.format(child.guest.ipAddress)
-                print('| {:45} | {:15} | {:14} | {:45} |'.format(name, isgRunning, ip, system))
+                print('| {:45} | {:15} | {:24} | {:55} |'.format(name, isgRunning, ip, system))
 
 
 class dataStores:
-    pass
+    def __init__(self, si, dsName=None):
+            self.si = si
+            self.dsName = dsName
+
+            content = self.si.RetrieveContent() # starting point
+            container = content.rootFolder # get rootFolder
+            recursive = True
+            viewType = [vim.Datastore]
+            containerView = content.viewManager.CreateContainerView(container,
+                                                                    viewType,
+                                                                    recursive) # Create a view
+            self.children = containerView.view
+
+    def listDatastores(self):
+        print('-' * 83)
+        print('| {:35} | {:10} | {:15} | {:7} |'.format('Datastore name', 'Type', 'Capacity[GB]', 'Free %'))
+        print('-' * 83)
+
+        for child in self.children:
+            dsName = child.name
+            dsCapacity = child.summary.capacity / 1024 / 1024 / 1024
+            dsFreeSpace_perc = int((child.summary.freeSpace * 100) / (child.summary.capacity +1))
+            dsType = child.summary.type
+            dsStatus = child.summary.accessible
+
+            if dsStatus is not True:
+                print('| {:35} | {:10} | {:15} | {:10} |'.format(dsName, dsType, 'inaccessible', 'n/a'))
+            else:
+                print('| {:35} | {:10} | {:15.0f} | {:7} |'.format(dsName, dsType, dsCapacity, dsFreeSpace_perc))
+
+        print('-' * 83)
+
+    def usedByDatastores(self):
+            print('-' * 83)
+            print('| {:35} | {:30} | {:50} | {:7} |'.format('Datastore name', 'Used by Hosts', 'Used by VMs', 'Free %'))
+            print('-' * 83)
+
+            for child in self.children:
+                dsName = child.name
+                dsFreeSpace_perc = int((child.summary.freeSpace * 100) / (child.summary.capacity +1))
+                dsStatus = child.summary.accessible
+                dsUsedVms = child.vm[0:]
+                dsUsedHosts = child.host#[0:]
+                vmList = []
+                hostList = [] 
+                for vm in dsUsedVms:
+                    vmList.append(vm)
+
+                for host in dsUsedHosts:
+                    hostList.append(host)
+
+                v = (vmList)
+                h = (hostList)
+
+                vmList_n = []
+                for vmm in v:
+                   vmList_n.append(vmm.name)
+
+                s = str(vmList_n)
+
+                hostList_n = [] 
+                for hosth in h:
+                    hostList_n.append(hosth.key.name)
+
+                h = str(hostList_n)
+
+                dsName_c = colored('Datastore name:', 'red')
+                vmServed_c = colored('VMs served:', 'red')
+                hostServed_c = colored('Hosts served:', 'red')
+                dsName_cc = colored(dsName, 'yellow')
+                dsName_na = colored(dsName, 'red')
+
+
+                if dsStatus is not True:
+                    print('-' * 150)
+                    print('{:30} {} - Not accessible'.format(dsName_c, dsName_na))
+                else:
+                    print('-' * 150)
+                    print('{:30} {}'.format(dsName_c, dsName_cc))
+                    print('\n{:30} {}'.format(vmServed_c, s))
+                    print('{:30} {}'.format(hostServed_c, h))
+                   
+
 
 class esxiHosts:
-    pass
+    def __init__(self, si, esxiName=None):
+        self.si = si
+        self.esxiName = esxiName
+
+        content = self.si.RetrieveContent() # starting point
+        container = content.rootFolder # get rootFolder
+        recursive = True
+        viewType = [vim.HostSystem]
+        containerView = content.viewManager.CreateContainerView(container,
+                                                                viewType,
+                                                                recursive) # Create a view
+        self.children = containerView.view
+
+    def listHosts(self):
+        print('-' * 157)
+        print('| {:25} | {:35} | {:6} | {:6} | {:25} | {:20} | {:10} | {:5} |'.format('Host Name', 'Model', 'CPU%', 'MEM%', 'VMWare ver.', 'Bios', 'FW', 'TZ'))
+        print('-' * 157)
+       
+        for child in self.children:
+            hostName = child.name
+            hostModel = child.hardware.systemInfo.model
+            hostBiosInfo = child.hardware.biosInfo.biosVersion
+            hostFwRel = '{}.{}'.format(child.hardware.biosInfo.firmwareMajorRelease, child.hardware.biosInfo.firmwareMinorRelease)
+            vmwareInstalled = '{}-{}'.format(child.config.product.version, child.config.product.build)
+            hostTz = child.config.dateTimeInfo.timeZone.name
+            cpuUsage_perc = int((child.summary.quickStats.overallCpuUsage * 100) / child.systemResources.config.cpuAllocation.limit)
+            memUsage_perc = int((child.summary.quickStats.overallMemoryUsage * 100) / child.systemResources.config.memoryAllocation.limit)
+            print('| {:25} | {:35} | {:6} | {:6} | {:25} | {:20} | {:10} | {:5} |'.format(hostName,
+                                                                                          hostModel,
+                                                                                          cpuUsage_perc,
+                                                                                          memUsage_perc,
+                                                                                          vmwareInstalled,
+                                                                                          hostBiosInfo,
+                                                                                          hostFwRel,
+                                                                                          hostTz))
+
+        print('-' * 157)
 
 class resourcePool:
     def __init__(self, si, rpName=None):
@@ -211,11 +329,14 @@ if __name__ == '__main__':
         vc.vCenterList(serviceInstance)
 
     print('''\nAvailable queries are:
-    [1] List Clusters
-    [11] Get specific Cluster information
-    [2] List Virtual Machines
-    [3] List Resource Pools
-    [4] List Datacenters''')
+    [1]   List Clusters
+    [11]   Get specific Cluster information
+    [2]   List Virtual Machines
+    [3]   List Resource Pools
+    [4]   List Datacenters
+    [5]   List Datastores
+    [51]   Objects using Datastores
+    [6]   List ESXi Hosts''')
     querySelect = int(input('Choose instance: '))
 
     print("\033c")
@@ -243,6 +364,15 @@ if __name__ == '__main__':
         if querySelect == 4:
             object = dataCenters(serviceInstance)
             object.listDatacenters()
+        if querySelect == 5:
+            object = dataStores(serviceInstance)
+            object.listDatastores()
+        if querySelect == 51:
+            object = dataStores(serviceInstance)
+            object.usedByDatastores()
+        if querySelect == 6:
+            object = esxiHosts(serviceInstance)
+            object.listHosts()
 
 
     
