@@ -60,7 +60,7 @@ class Clusters():
             print('-' * 91 )
             chname = child.name
             chstatus = child.summary.overallStatus
-            print('| {:15} | {:30} | {:20} |'.format(chname, '', chstatus))
+            print('| {:15} | {:30} | {:20} |'.format(chname, ' ', chstatus))
 
             for host in child.host:
                 hName = host.name
@@ -128,7 +128,7 @@ class dataStores:
 
     def listDatastores(self):
         print('-' * 83)
-        print('| {:35} | {:10} | {:15} | {:7} |'.format('Datastore name', 'Type', 'Capacity[GB]', 'Free %'))
+        print('| {:35} | {:10} | {:15} | {:10} |'.format('Datastore name', 'Type', 'Capacity[GB]', 'Free %'))
         print('-' * 83)
 
         for child in self.children:
@@ -141,9 +141,31 @@ class dataStores:
             if dsStatus is not True:
                 print('| {:35} | {:10} | {:15} | {:10} |'.format(dsName, dsType, 'inaccessible', 'n/a'))
             else:
-                print('| {:35} | {:10} | {:15.0f} | {:7} |'.format(dsName, dsType, dsCapacity, dsFreeSpace_perc))
+                print('| {:35} | {:10} | {:15.0f} | {:10} |'.format(dsName, dsType, dsCapacity, dsFreeSpace_perc))
 
         print('-' * 83)
+
+    def listDatastoresFull(self):
+        print('-' * 83)
+        print('INFO: Printing only Datastores with less than 11% free space')
+        print('| {:35} | {:10} | {:15} | {:10} |'.format('Datastore name', 'Type', 'Capacity[GB]', 'Free %'))
+        print('-' * 83)
+
+        for child in self.children:
+            dsName = child.name
+            dsCapacity = child.summary.capacity / 1024 / 1024 / 1024
+            dsFreeSpace_perc = int((child.summary.freeSpace * 100) / (child.summary.capacity +1))
+            dsType = child.summary.type
+            dsStatus = child.summary.accessible
+
+            if dsStatus is not True:
+                print('| {:35} | {:10} | {:15} | {:10} |'.format(dsName, dsType, 'inaccessible', 'n/a'))
+            else:
+                if dsFreeSpace_perc < 11:
+                    print('| {:35} | {:10} | {:15.0f} | {:10} |'.format(dsName, dsType, dsCapacity, dsFreeSpace_perc))
+
+        print('-' * 83)
+
 
     def usedByDatastores(self):
             print('-' * 83)
@@ -336,6 +358,7 @@ if __name__ == '__main__':
     [4]   List Datacenters
     [5]   List Datastores
     [51]   Objects using Datastores
+    [52]   List Datastores reaching full usage
     [6]   List ESXi Hosts''')
     querySelect = int(input('Choose instance: '))
 
@@ -370,6 +393,9 @@ if __name__ == '__main__':
         if querySelect == 51:
             object = dataStores(serviceInstance)
             object.usedByDatastores()
+        if querySelect == 52:
+            object = dataStores(serviceInstance)
+            object.listDatastoresFull()
         if querySelect == 6:
             object = esxiHosts(serviceInstance)
             object.listHosts()
