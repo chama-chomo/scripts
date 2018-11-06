@@ -111,6 +111,36 @@ class VirtualMachines():
                 ip = '{}'.format(child.guest.ipAddress)
                 print('| {:45} | {:15} | {:24} | {:55} |'.format(name, isgRunning, ip, system))
 
+    def showVMfjt(self, vmName):
+        print('-' * 152 )
+        for child in self.children:
+            name = child.name
+            ip = '{}'.format(child.guest.ipAddress)
+            OsFullName = child.summary.config.guestFullName
+            memSize = child.summary.config.memorySizeMB
+            cpuCount = child.summary.config.numCpu
+            ethCount = child.summary.config.numEthernetCards
+            hostName = child.summary.guest.hostName
+
+            if child.name == vmName:
+                print('''
+                VM Name: {}
+                Hostname: {}
+                OS type: {}
+                IP Address: {}
+                CPU count / Memory size(MB)- {} / {}
+                Network devices count: {}
+                '''.format(name, hostName, OsFullName, ip, cpuCount, memSize, ethCount))
+                for net in child.network:
+                    print('Network connected: {}'.format(net.name))
+                for ds in child.datastore:
+                    print('Datastore used: {}'.format(ds.name))
+                # for rp in child.resourcePool.resoucePool:
+                #     print('ResourcePool assigned: {}'.format(rp.name))
+                print('ResourcePool assigned: {}'.format(child.resourcePool.name))
+            else:
+                pass
+
 
 class dataStores:
     def __init__(self, si, dsName=None):
@@ -351,15 +381,21 @@ if __name__ == '__main__':
         vc.vCenterList(serviceInstance)
 
     print('''\nAvailable queries are:
-    [1]   List Clusters
-    [11]   Get specific Cluster information
-    [2]   List Virtual Machines
-    [3]   List Resource Pools
-    [4]   List Datacenters
-    [5]   List Datastores
-    [51]   Objects using Datastores
-    [52]   List Datastores reaching full usage
-    [6]   List ESXi Hosts''')
+    [1]   Clusters (default: List all)
+    [11]  - Get specific Cluster information
+
+    [2]   List Virtual Machines (default: List all )
+    [21]  - Show specifc VM info (formatted mainly for FJT evidence)
+
+    [3]   List Resource Pools(default: List all)
+
+    [4]   List Datacenters(default: List all)
+
+    [5]   List Datastores(default: List all)
+    [51]  - Objects using Datastores
+    [52]  - List Datastores reaching full usage
+
+    [6]   List ESXi Hosts (default: List all)''')
     querySelect = int(input('Choose instance: '))
 
     print("\033c")
@@ -381,6 +417,10 @@ if __name__ == '__main__':
         if querySelect == 2:
             object = VirtualMachines(serviceInstance)
             object.listVMs()
+        if querySelect == 21:
+            inp = input('Type a VM name (the one in the VCenter): ')
+            object = VirtualMachines(serviceInstance)
+            object.showVMfjt(inp)
         if querySelect == 3:
             object = resourcePool(serviceInstance)
             object.listResourcePools()
