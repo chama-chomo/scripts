@@ -111,18 +111,20 @@ class VirtualMachines():
                 ip = '{}'.format(child.guest.ipAddress)
                 print('| {:45} | {:15} | {:24} | {:55} |'.format(name, isgRunning, ip, system))
 
-    def showVMfjt(self, vmName):
-        print('-' * 152 )
+    def showVMInfo(self, vmName):
         for child in self.children:
-            name = child.name
-            ip = '{}'.format(child.guest.ipAddress)
-            OsFullName = child.summary.config.guestFullName
-            memSize = child.summary.config.memorySizeMB
-            cpuCount = child.summary.config.numCpu
-            ethCount = child.summary.config.numEthernetCards
-            hostName = child.summary.guest.hostName
+            regex_s = re.match(r'(.*{}.*)'.format(vmName), child.name, re.IGNORECASE)
 
-            if child.name == vmName:
+            if regex_s is not None:
+                name = child.name
+                ip = '{}'.format(child.guest.ipAddress)
+                OsFullName = child.summary.config.guestFullName
+                memSize = child.summary.config.memorySizeMB
+                cpuCount = child.summary.config.numCpu
+                ethCount = child.summary.config.numEthernetCards
+                hostName = child.summary.guest.hostName
+
+                print('Match "{}" for regex string "{}"'.format(child.name, vmName))
                 print('''
                 VM Name: {}
                 Hostname: {}
@@ -138,9 +140,9 @@ class VirtualMachines():
                 # for rp in child.resourcePool.resoucePool:
                 #     print('ResourcePool assigned: {}'.format(rp.name))
                 print('ResourcePool assigned: {}'.format(child.resourcePool.name))
+                print('-' * 152 )
             else:
                 pass
-
 
 class dataStores:
     def __init__(self, si, dsName=None):
@@ -361,7 +363,7 @@ if __name__ == '__main__':
        [1] dsc01-vcvsp01.dscen.cz
        [2] dsc01-vcper01.dscen.cz
        [3] dsc02-vcvsp01.dscen.cz
-       [4] dsc01-vcper01.dscen.cz''')
+       [4] dsc02-vcper01.dscen.cz''')
     vcenterSelect = int(input('Choose instance: '))
     if vcenterSelect == 0:
         vcenterInstance = ['dsc01-vcvsp01.dscen.cz', 'dsc01-vcper01.dscen.cz', 'dsc02-vcvsp01.dscen.cz', 'dsc02-vcper01.dscen.cz']
@@ -372,7 +374,7 @@ if __name__ == '__main__':
     if vcenterSelect == 3:
         vcenterInstance = ['dsc02-vcvsp01.dscen.cz']
     if vcenterSelect == 4:
-        vcenterInstance = {'dsc02-vcvsp01.dscen.cz'}
+        vcenterInstance = {'dsc02-vcper01.dscen.cz'}
 
     print("\033c")
     for instance in vcenterInstance:
@@ -381,22 +383,27 @@ if __name__ == '__main__':
         vc.vCenterList(serviceInstance)
 
     print('''\nAvailable queries are:
-    [1]   Clusters (default: List all)
-    [11]  - Get specific Cluster information
+    ===============================================================
+    [1]      Clusters (default: List all)
+    [11]     Get specific Cluster information
+    ===============================================================
+    [2]      List Virtual Machines (default: List all )
+    [21]     Show specifc VM info  (search based on regex provided)
+    ===============================================================
+    [3]      List Resource Pools(default: List all)
+    ===============================================================
+    [4]      List Datacenters(default: List all)
+    ===============================================================
+    [5]      List Datastores(default: List all)
+    [51]     Objects using Datastores
+    [52]     List Datastores reaching full usage
+    ===============================================================
+    [6]      List ESXi Hosts (default: List all)
+    ===============================================================''')
+    querySelect = int(input('Select Query: '))
 
-    [2]   List Virtual Machines (default: List all )
-    [21]  - Show specifc VM info (formatted mainly for FJT evidence)
-
-    [3]   List Resource Pools(default: List all)
-
-    [4]   List Datacenters(default: List all)
-
-    [5]   List Datastores(default: List all)
-    [51]  - Objects using Datastores
-    [52]  - List Datastores reaching full usage
-
-    [6]   List ESXi Hosts (default: List all)''')
-    querySelect = int(input('Choose instance: '))
+    if querySelect == 21:
+            vmName = input('\nType a VM name (the one in the VCenter) or regex string that will be used to match the VM name: ')
 
     print("\033c")
     for instance in vcenterInstance:
@@ -418,9 +425,8 @@ if __name__ == '__main__':
             object = VirtualMachines(serviceInstance)
             object.listVMs()
         if querySelect == 21:
-            inp = input('Type a VM name (the one in the VCenter): ')
             object = VirtualMachines(serviceInstance)
-            object.showVMfjt(inp)
+            object.showVMInfo(vmName)
         if querySelect == 3:
             object = resourcePool(serviceInstance)
             object.listResourcePools()
