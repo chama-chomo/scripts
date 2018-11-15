@@ -84,7 +84,8 @@ def PrintVmInfo(vm, content, vchtime, interval, perf_dict, ):
     vm_hardware = vm.config.hardware
     for each_vm_hardware in vm_hardware.device:
         if (each_vm_hardware.key >= 2000) and (each_vm_hardware.key < 3000):
-            disk_list.append('{} | {:.1f}GB | Thin: {} | {}'.format(each_vm_hardware.deviceInfo.label,
+            disk_list.append('''{} | {:.1f}GB | Thin: {}
+                                       {}'''.format(each_vm_hardware.deviceInfo.label,
                                                          each_vm_hardware.capacityInKB/1024/1024,
                                                          each_vm_hardware.backing.thinProvisioned,
                                                          each_vm_hardware.backing.fileName))
@@ -134,10 +135,11 @@ def PrintVmInfo(vm, content, vchtime, interval, perf_dict, ):
     statNetworkRx = BuildQuery(content, vchtime, (StatCheck(perf_dict, 'net.received.average')), "", vm, interval)
     networkRx = (float(sum(statNetworkRx[0].value[0].value) * 8 / 1024) / statInt)
 
-    print('=' * 140)
+    print('=' * 100)
     print('| {:30} | {:10} | {:10} | {:10} | {:10} | {:10}  |'.format('VM NAME', 'CPU LIM', 'MEM LIM', 'CPU RESERV', 'MEM RESERV', 'vCPU no.'))
     print('-' * 100)
     print('| {:30} | {:10} | {:10} | {:10} | {:10} | {:10}  |'.format(summary.config.name, vmcpulimit, vmmemlimit, vmcpures, vmmemres, summary.config.numCpu))
+    print('-' * 100)
 
     #print('\nNOTE: Any VM statistics are averages of the last {} minutes\n'.format(statInt / 3))
     # print('Server Name                    :', summary.config.name)
@@ -148,20 +150,15 @@ def PrintVmInfo(vm, content, vchtime, interval, perf_dict, ):
     # else:
     #     print('Snapshot Status                : No Snapshots')
     # print('VM .vmx Path                   :', summary.config.vmPathName)
-    try:
-        print('\nVirtual Disks                    :', disk_list[0])
-        if len(disk_list) > 1:
-            disk_list.pop(0)
-            for each_disk in disk_list:
-                print('                                  ', each_disk)
-    except IndexError:
-        pass
-    diskInfo = vm.guest.disk
-    print('Filesystems')
-    for disk_id in diskInfo:
-        # fs_list.append('Disk: {}, free space(%): {}, Capacity: {}'.format(disk_id, ((disk_id.freeSpace * 100) / disk_id.capacity)))
-        print('                                  [FS: {}, free space(%): {}, Capacity(MB): {}]'.format(disk_id.diskPath, ((disk_id.freeSpace * 100) / disk_id.capacity), (disk_id.capacity / 1024 / 1024)))
-
+    # try:
+    #     print('\nVirtual Disks                    :', disk_list[0])
+    #     if len(disk_list) > 1:
+    #         disk_list.pop(0)
+    #         for each_disk in disk_list:
+    #             print('                                  ', each_disk)
+    # except IndexError:
+    #     pass
+    
     # print(fs_list[0])
     # for each_fs in fs_list:
     #     print('                           ', each_fs)
@@ -180,16 +177,16 @@ def PrintVmInfo(vm, content, vchtime, interval, perf_dict, ):
     #                                                                                    ((float(max(
     #                                                                                        statCpuReady[0].value[
     #                                                                                            0].value)) / 20000 * 100))))
-    print('\n[VM] CPU (%) ({:3}hour avg )      : {:.0f} %'.format(((statInt / 3) / 60), cpuUsage))
-    print('[VM] Memory                      : {} MB ({:.1f} GB)'.format(summary.config.memorySizeMB, (float(summary.config.memorySizeMB) / 1024)))
+    print('\n[VM] CPU (%) ({:.0f}hour avg)         : {:.0f}%'.format(((statInt / 3) / 60), cpuUsage))
+    print('[VM] Memory Total                : {}MB ({:.1f}GB)'.format(summary.config.memorySizeMB, (float(summary.config.memorySizeMB) / 1024)))
     # print('[VM] Memory Shared             : {:.0f} %, {:.0f} MB'.format(
     #     ((memoryShared / summary.config.memorySizeMB) * 100), memoryShared))
     # print('[VM] Memory Balloon            : {:.0f} %, {:.0f} MB'.format(
     #     ((memoryBalloon / summary.config.memorySizeMB) * 100), memoryBalloon))
     # print('[VM] Memory Swapped            : {:.0f} %, {:.0f} MB'.format(
     #     ((memorySwapped / summary.config.memorySizeMB) * 100), memorySwapped))
-    print('[VM] Memory Active               : {:.0f} %, {:.0f} MB'.format(
-        ((memoryActive / summary.config.memorySizeMB) * 100), memoryActive))
+    print('[VM] Mem Active ({:.0f}hour avg)      : {:.0f}%, {:.0f}MB'.format((statInt / 3 / 60), ((memoryActive / summary.config.memorySizeMB) * 100), memoryActive))
+    #print('[VM] Mem Used current            : {:.0f}MB'.format(summary.quickStats.guestMemoryUsage))
     # print('[VM] Datastore Average IO      : Read: {:.0f} IOPS, Write: {:.0f} IOPS'.format(DatastoreIoRead,
     #                                                                                       DatastoreIoWrite))
     # print('[VM] Datastore Average Latency : Read: {:.0f} ms, Write: {:.0f} ms'.format(DatastoreLatRead,
@@ -206,6 +203,15 @@ def PrintVmInfo(vm, content, vchtime, interval, perf_dict, ):
     # print('[Host] Memory Usage            : Used: {:.0f} GB, Total: {:.0f} GB\n'.format(
     #     (float(summary.runtime.host.summary.quickStats.overallMemoryUsage) / 1024),
     #     (float(summary.runtime.host.summary.hardware.memorySize) / 1024 / 1024 / 1024)))
+    diskInfo = vm.guest.disk
+    print('[VM] Filesystems')
+    for disk_id in diskInfo:
+        # fs_list.append('Disk: {}, free space(%): {}, Capacity: {}'.format(disk_id, ((disk_id.freeSpace * 100) / disk_id.capacity)))
+        free_perc = int((disk_id.freeSpace * 100) / disk_id.capacity)
+        if free_perc < 10:
+            print('                             !!! [FS: {:28} FREE: {:3}%, CAPACITY: {:8}MB] !!!'.format(disk_id.diskPath, free_perc, (disk_id.capacity / 1024 / 1024)))
+        else:
+            print('                                 [FS: {:28} FREE: {:3}%, CAPACITY: {:8}MB]'.format(disk_id.diskPath, free_perc, (disk_id.capacity / 1024 / 1024)))
 
 
 def StatCheck(perf_dict, counter_name):
