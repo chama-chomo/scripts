@@ -123,26 +123,34 @@ class VirtualMachines():
                 cpuCount = child.summary.config.numCpu
                 ethCount = child.summary.config.numEthernetCards
                 hostName = child.summary.guest.hostName
-
-                print('Match "{}" for regex string "{}"'.format(child.name, vmName))
+                hostRunning = child.runtime.host.name
+                cpuInfo = child.runtime.host.hardware.cpuPkg[0:]
+                for cpu in cpuInfo:
+                    cpuDesc = cpu.description
+ 
+                print('\nMatch "{}" for regex string "{}"'.format(child.name, vmName))
+               
                 print('''
-                VM Name: {}
-                Hostname: {}
-                OS type: {}
-                IP Address: {}
-                CPU count / Memory size(MB)- {} / {}
-                Network devices count: {}
-                '''.format(name, hostName, OsFullName, ip, cpuCount, memSize, ethCount))
+VM Name:                     {}
+Hostname:                    {}
+OS type:                     {}
+IP Address:                  {}
+CPU count / Memory size(MB): {} / {}
+Network devices count:       {}'''.format(name, hostName, OsFullName, ip, cpuCount, memSize, ethCount))
                 for net in child.network:
-                    print('Network connected: {}'.format(net.name))
+                    print('_Network connected:          {}'.format(net.name))
                 for ds in child.datastore:
-                    print('Datastore used: {}'.format(ds.name))
+                    print('Datastore used:              {}'.format(ds.name))
                 # for rp in child.resourcePool.resoucePool:
                 #     print('ResourcePool assigned: {}'.format(rp.name))
-                print('ResourcePool assigned: {}'.format(child.resourcePool.name))
+                print('ResourcePool assigned:       {}'.format(child.resourcePool.name))
+                print('''Host:                        {}
+_Host CPU info:              {}'''.format(hostRunning, cpuDesc))
                 print('-' * 152 )
             else:
                 pass
+            
+
 
 class dataStores:
     def __init__(self, si, dsName=None):
