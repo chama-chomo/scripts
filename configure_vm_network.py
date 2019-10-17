@@ -18,9 +18,9 @@ print('VM to be modified should be turned off before running the script')
 print('-' * 100)
 
 print('''Possibilities for the below input are:
-dsc01-vcvsp01.dscen.cz  dsc01-vcper01.dscen.cz  dsc02-vcvsp01.dscen.cz  dsc02-vcper01.dscen.cz''')
+dsc01-vcvsp01  dsc01-vcper01 dsc02-vcvsp01  dsc02-vcper01''')
 vcenter_ip = input('\nProvide Vcenter name on which VM is configured: ')
-print('\nYour Vcenter user (DSCEN Domain name will be automatically included)')
+print('\nYour Vcenter user ( Domain name will be automatically included)')
 vcenter_user_ask = input('Provide Vcenter user: ')
 vcenter_user = 'DSCEN\{}'.format(vcenter_user_ask)
 vcenter_password = input('Provide password for the user {} :'.format(vcenter_user))
@@ -32,7 +32,6 @@ subnet = input('Provide the subnet mask in x.x.x.x format (if empty default /24 
 if not subnet:
     subnet = '255.255.255.0'
 gateway = input('Provide the IP of a Gateway: ')
-#dns = ['11.110.135.51', '11.110.135.52']
 domain = input('What will be the domain used: ')
 os.system('clear') 
 
