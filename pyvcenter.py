@@ -200,7 +200,7 @@ class Vcenter:
 
 if __name__ == '__main__':
 
-    VC = Vcenter('dsc01-vcper01.dscen.cz')
+    VC = Vcenter('dsc01-v')
     #VC.printToHtml()
     #VC.DsUsage()
     VC.RpUsage()
