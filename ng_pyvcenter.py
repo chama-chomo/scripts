@@ -12,7 +12,7 @@ from termcolor import colored, cprint
 
 class vCenter:
     '''Defines VCENTER'''
-    def __init__(self, vcHost, user='monvc', pwd='CiCt5.mon'):
+    def __init__(self, vcHost, user='monvc', pwd='xxx'):
         self.vcHost = vcHost
         self.user = user
         self.pwd = pwd
@@ -368,21 +368,21 @@ if __name__ == '__main__':
     print("\033c")
     print('''Available vcenter instances are:
        [0] Query all available instances from list below
-       [1] dsc01-vcvsp01.dscen.cz
-       [2] dsc01-vcper01.dscen.cz
-       [3] dsc02-vcvsp01.dscen.cz
-       [4] dsc02-vcper01.dscen.cz''')
+       [1] dsc01
+       [2] dsc01-v
+       [3] dsc02
+       [4] dsc02-v''')
     vcenterSelect = int(input('Choose instance: '))
     if vcenterSelect == 0:
-        vcenterInstance = ['dsc01-vcvsp01.dscen.cz', 'dsc01-vcper01.dscen.cz', 'dsc02-vcvsp01.dscen.cz', 'dsc02-vcper01.dscen.cz']
+        vcenterInstance = ['dsc01', 'dsc01-v', 'dsc02', 'dsc02-v']
     if vcenterSelect == 1:
-        vcenterInstance = ['dsc01-vcvsp01.dscen.cz']
+        vcenterInstance = ['dsc01']
     if vcenterSelect == 2:
-        vcenterInstance = ['dsc01-vcper01.dscen.cz']
+        vcenterInstance = ['dsc01-v']
     if vcenterSelect == 3:
-        vcenterInstance = ['dsc02-vcvsp01.dscen.cz']
+        vcenterInstance = ['dsc02']
     if vcenterSelect == 4:
-        vcenterInstance = {'dsc02-vcper01.dscen.cz'}
+        vcenterInstance = {'dsc02-v'}
 
     print("\033c")
     for instance in vcenterInstance:
